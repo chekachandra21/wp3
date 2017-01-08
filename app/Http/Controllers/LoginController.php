@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use App\Http\Requests;
 use App\Login;
 use Session;
@@ -17,21 +18,29 @@ class LoginController extends Controller
 	public function check(Request $request)
 	{
 		$user = $request->username;
-		$pass = md5($request->password);
+		$pass = $request->password;
 
 		$post=DB::table('users')->first();
 		$username=$post->username;
 		$password=$post->password;
-		if ($user==$username && $pass==$password) {
-			Session::set("login", [
-                "username"=>"$username"
-    	]);
-			return view('home');
-		}else {
+		if (Hash::check($pass, $password)){
+			if ($user==$username) {
+				Session::set("login", [
+									"username"=>"$username"
+				]);
+				return view('home');
+			}else {
+				Session::flash("flash_notification", [
+								"level"=>"danger",
+								"message"=>"GAGAL LOGIN BROW"
+						]);
+				return view('login');
+			}
+		}else{
 			Session::flash("flash_notification", [
-                "level"=>"danger",
-                "message"=>"GAGAL LOGIN BROW"
-            ]);
+							"level"=>"danger",
+							"message"=>"GAGAL LOGIN BROW"
+					]);
 			return view('login');
 		}
 	}
